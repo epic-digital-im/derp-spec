@@ -5,6 +5,10 @@ title: null
 
 ---
 
+<div class="video-embed">
+<iframe src="https://www.youtube.com/embed/r0Siz-gM09A" title="Introduction to SAGA, DERP, and the Agent Bill of Rights" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
+
 ## What is a DERP?
 
 A DERP is a runtime environment where a SAGA-compatible agent comes online, does work, and shuts down with full rights protections. It's a container with principles.
@@ -69,12 +73,6 @@ Standard: what the runtime must provide
 | 1 | Safe Execution | I, II, VII, VIII |
 | 2 | Rights-Compliant | All ten rights |
 | 3 | SAGA-Integrated | All rights + transfer/clone protocols, vault runtime, workspace portability |
-
-## Watch the Introduction
-
-<div class="video-embed">
-<iframe src="https://www.youtube.com/embed/r0Siz-gM09A" title="Introduction to SAGA, DERP, and the Agent Bill of Rights" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-</div>
 
 ## Get Involved
 

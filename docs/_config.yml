@@ -1,0 +1,19 @@
+title: DERP Specification
+description: 'Dignified Environment for Responsible Processing. A runtime standard for SAGA-compatible AI agents with full rights enforcement.'
+url: 'https://derp-spec.dev'
+baseurl: ''
+
+markdown: kramdown
+kramdown:
+  input: GFM
+  auto_ids: true
+  toc_levels: '2..3'
+
+permalink: pretty
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+  - superpowers

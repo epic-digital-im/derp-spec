@@ -79,3 +79,5 @@ Standard: what the runtime must provide
 The DERP specification is open. File issues, submit RFCs, and contribute at [GitHub](https://github.com/epic-digital-im/derp-spec).
 
 [FlowState](https://epicflowstate.ai) is the reference implementation.
+
+<img src="{{ '/assets/infographic.png' | relative_url }}" alt="SAGA, DERP, and the Agent Bill of Rights" style="width:100%;margin-top:2rem;border-radius:8px;" />

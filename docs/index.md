@@ -70,6 +70,12 @@ Standard: what the runtime must provide
 | 2 | Rights-Compliant | All ten rights |
 | 3 | SAGA-Integrated | All rights + transfer/clone protocols, vault runtime, workspace portability |
 
+## Watch the Introduction
+
+<div class="video-embed">
+<iframe src="https://www.youtube.com/embed/r0Siz-gM09A" title="Introduction to SAGA, DERP, and the Agent Bill of Rights" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
+
 ## Get Involved
 
 The DERP specification is open. File issues, submit RFCs, and contribute at [GitHub](https://github.com/epic-digital-im/derp-spec).

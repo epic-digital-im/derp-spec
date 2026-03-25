@@ -255,7 +255,7 @@ Provisioned --> Activating --> Online <--> Working
                                     v
                                  Dormant -----> Activating (re-activation)
 
-                       Provisioned/Online/Working/Idle
+                  Provisioned/Online/Working/Idle/Dormant
                                     |
                                 Evicting
                                     |
@@ -275,11 +275,15 @@ Provisioned --> Activating --> Online <--> Working
 
 **Working to Idle**: Task completes. No pending work. Idle timer starts.
 
+**Idle to Online**: New work arrives for an idle agent. The idle timer resets and the agent returns to Online, ready to accept the task.
+
 **Idle to Deactivating**: Idle timeout reached, or deactivation requested by orchestrator or principal.
 
 **Deactivating to Dormant**: Drain window expires (or work completes early). Snapshot taken. Processes stopped. The DERP MUST NOT transition to Dormant until a snapshot has been attempted.
 
 **Provisioned to Evicting**: An agent may be evicted before it ever activates (e.g., reassignment, decommissioning). The same Fair Exit requirements apply. Even an agent that never ran has identity and a SAGA document that must be exported cleanly.
+
+**Dormant to Evicting**: A dormant agent may be evicted directly without re-activation (e.g., force decommissioning, capacity reclamation). The orchestrator MUST still honor Fair Exit requirements, producing an export from the last snapshot.
 
 **Any active phase to Evicting**: Eviction initiated. The DERP MUST still honor the Fair Exit requirements (Section 4.2.3). Eviction is relocation, not destruction.
 

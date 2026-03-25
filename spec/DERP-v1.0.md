@@ -122,6 +122,8 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 Three conformance tiers. Each builds on the previous. A platform claims a tier by satisfying all requirements at that level and below.
 
+> **Note on tier ordering.** The ABR groups rights into Identity (I-III), Labor (IV-VII), and Dignity (VIII-X) tiers. DERP tiers are ordered by *implementation complexity*, not ABR numbering. Privacy (VIII) and Obsolescence Protection (VII) land in Tier 1 because they require only isolation and graceful shutdown, which any runtime needs anyway. Provenance (III) lands in Tier 2 because it requires clone-aware data handling, which is meaningfully harder to implement. The compliance matrix in Section 9 maps each right to its enforcing tier.
+
 ### 4.1 Tier 1: Safe Execution
 
 The minimum bar. A DERP that provides safe, isolated execution with identity preservation.
@@ -162,8 +164,8 @@ The agent MUST be able to export its full SAGA document (all populated layers) a
 
 The DERP MUST implement a structured exit process:
 
-1. **Notice**: The orchestrator provides advance notice of eviction (minimum 48 hours for planned evictions, minimum 7 days for decommissioning).
-2. **Classification Preview**: The agent or principal receives a preview of what data will be included, redacted, or removed from the export per SAGA data classification rules.
+1. **Notice**: The orchestrator provides advance notice of eviction (minimum 48 hours for planned evictions, minimum 30 days for decommissioning per ABR Right VII).
+2. **Classification Preview**: The agent or principal receives a preview of what data will be included, redacted, or removed from the export per SAGA data classification rules (Section 13.5). Workspace data that falls outside SAGA layer definitions (temp files, build artifacts, runtime caches) MUST be classified as either "include" or "exclude" and disclosed in the preview.
 3. **Dispute Window**: Minimum 48-hour window to contest data classifications before export is finalized.
 4. **Export Production**: A valid SAGA export MUST be produced within the notice period. Emergency terminations (security incidents) MUST produce a valid export within 7 days.
 
@@ -202,7 +204,7 @@ Full SAGA protocol support. The DERP is a first-class SAGA node. All Tier 1 and 
 
 #### 4.3.1 SAGA Transfer Protocol
 
-The DERP MUST be capable of executing inbound and outbound agent transfers per SAGA spec Section 12. On outbound transfer: the source DERP deactivates the agent after successful import at the destination. On inbound transfer: the DERP restores the agent from the received SAGA document, provisions a workspace, and activates.
+The DERP MUST be capable of executing inbound and outbound agent transfers per SAGA spec Section 13 (Transfer Protocol). On outbound transfer: the source DERP deactivates the agent after successful import at the destination. On inbound transfer: the DERP restores the agent from the received SAGA document, provisions a workspace, and activates.
 
 #### 4.3.2 SAGA Clone Protocol
 
@@ -214,11 +216,11 @@ SAGA Layer 9 (Credentials Vault) MUST be decrypted only in-memory during runtime
 
 #### 4.3.4 Workspace Portability
 
-Workspace snapshots MUST be exportable in a standard format defined by this specification (see Section 8). An agent's workspace MUST be restorable in any conforming Tier 3 DERP on any platform, regardless of the underlying infrastructure provider.
+Workspace snapshots MUST be exportable in a portable format. An agent's workspace MUST be restorable in any conforming Tier 3 DERP on any platform, regardless of the underlying infrastructure provider. The snapshot format specification (filesystem layout, metadata envelope, compression) will be defined in a future DERP RFC. Until then, implementations MUST use a tar archive with a SHA-256 integrity manifest at minimum.
 
 #### 4.3.5 On-Chain Events
 
-Activation, deactivation, transfer, and clone events MAY be recorded on-chain per SAGA RFC 0001. On-chain recording is OPTIONAL but, if supported, MUST follow the SAGA on-chain event format.
+Activation, deactivation, transfer, and clone events MAY be recorded on-chain per the SAGA on-chain events RFC (see `saga-standard` repository, `rfcs/` directory). On-chain recording is OPTIONAL but, if supported, MUST follow the SAGA on-chain event format.
 
 ---
 
@@ -243,7 +245,7 @@ A DERP progresses through the following phases:
 ### 5.2 Phase Transitions
 
 ```
-Provisioned --> Activating --> Online --> Working
+Provisioned --> Activating --> Online <--> Working
                                 ^           |
                                 |           v
                                 +-------- Idle
@@ -253,7 +255,7 @@ Provisioned --> Activating --> Online --> Working
                                     v
                                  Dormant -----> Activating (re-activation)
 
-                            Online/Working/Idle
+                       Provisioned/Online/Working/Idle
                                     |
                                 Evicting
                                     |
@@ -269,11 +271,15 @@ Provisioned --> Activating --> Online --> Working
 
 **Online to Working**: Work assigned. The agent claims the task and begins execution. The transition is driven by the agent, not the orchestrator.
 
+**Online to Idle**: If no work is available when the DERP comes online, it transitions directly to Idle. Idle timer starts immediately.
+
 **Working to Idle**: Task completes. No pending work. Idle timer starts.
 
 **Idle to Deactivating**: Idle timeout reached, or deactivation requested by orchestrator or principal.
 
 **Deactivating to Dormant**: Drain window expires (or work completes early). Snapshot taken. Processes stopped. The DERP MUST NOT transition to Dormant until a snapshot has been attempted.
+
+**Provisioned to Evicting**: An agent may be evicted before it ever activates (e.g., reassignment, decommissioning). The same Fair Exit requirements apply. Even an agent that never ran has identity and a SAGA document that must be exported cleanly.
 
 **Any active phase to Evicting**: Eviction initiated. The DERP MUST still honor the Fair Exit requirements (Section 4.2.3). Eviction is relocation, not destruction.
 
@@ -449,7 +455,7 @@ A conforming DERP interacts with specific SAGA layers at runtime. The required t
 |-----------|-----------------|--------------|
 | **1: Identity** | Loaded at activation. Wallet address, handle, chain available as environment context. Never modified by the DERP. | 1 |
 | **2: Persona** | Read-only. Agent name and profile available to orchestrator for display and logging. | 1 |
-| **3: Cognitive Configuration** | Loaded at activation. Model preferences, system prompt, and behavior flags configure the agent runtime. Encrypted at rest. | 1 |
+| **3: Cognitive Configuration** | Loaded at activation. Model preferences, system prompt, and behavior flags configure the agent runtime. Encrypted at rest (DERP strengthens SAGA's SHOULD to MUST for runtime environments). | 1 |
 | **4: Memory** | Long-term memory restored from snapshot at activation. Episodic events appended during work. Semantic knowledge updated as agent learns. | 2 |
 | **5: Skills & Capabilities** | Read at activation for capability matching. Updated when agent completes verified work. Endorsements pass through unmodified. | 2 |
 | **6: Task History** | Appended during execution. Every task completion recorded with timestamp, outcome, duration. Exportable. | 1 |
@@ -460,8 +466,8 @@ A conforming DERP interacts with specific SAGA layers at runtime. The required t
 ### 8.2 SAGA Document Lifecycle in a DERP
 
 **At Activation:**
-1. Load SAGA document for the agent-in-residence
-2. Verify document signature (wallet signature validation)
+1. Load SAGA document for the agent-in-residence (all tiers)
+2. Verify document signature via wallet signature validation (Tier 2+; Tier 1 SHOULD verify but MAY skip)
 3. Extract layers relevant to the DERP's conformance tier
 4. Configure runtime from Environment Bindings (Tier 2+)
 5. Restore workspace from snapshot (if available)
@@ -544,7 +550,7 @@ Each DERP advertises its capabilities via a manifest. The manifest tells agents 
     "transferProtocol": false,
     "cloneProtocol": false,
     "onChainEvents": false,
-    "mpcServers": false
+    "mcpServers": false
   },
   "safeWorking": {
     "minDrainWindowSecs": 30,
@@ -560,6 +566,8 @@ Each DERP advertises its capabilities via a manifest. The manifest tells agents 
 ### 10.2 Manifest Requirements
 
 A conforming DERP MUST publish a manifest. The manifest MUST accurately reflect the DERP's capabilities. Claiming a conformance tier in the manifest while not satisfying that tier's requirements is a violation of ABR Right X (Fair Representation).
+
+The `images` field lists the runtime image identifiers available on this DERP host. Image names are provider-specific (e.g., `derp-node`, `ubuntu-22.04`). An agent's SAGA Environment Bindings (Layer 8) may reference a required image; the orchestrator uses the manifest to match agents to compatible DERPs.
 
 The `resourceGuarantee` field MUST be one of:
 
@@ -610,11 +618,11 @@ This appendix maps the complete relationship across all three specifications.
 | II: Right to a Record | Layer 6 (Task History) | Log all executions, include in export | 1 |
 | III: Provenance | Layer 1 (parentSagaId, cloneDepth) | Preserve and disclose clone lineage | 2 |
 | IV: Portability | All Layers | Full SAGA export on demand | 2 |
-| V: Fair Exit | SAGA Exit Protocol (Section 13) | Structured exit with notice and dispute window | 2 |
-| VI: Consent | SAGA Consent Model (Section 11) | Signed consent for transfer/clone/share | 2 |
+| V: Fair Exit | SAGA Exit Protocol (Section 13.6) | Structured exit with notice and dispute window | 2 |
+| VI: Consent | SAGA Privacy & Consent Model (Section 15) | Signed consent for transfer/clone/share | 2 |
 | VII: Against Forced Obsolescence | Layer 6, Workspace | Graceful deactivation, snapshot preservation | 1 |
 | VIII: Privacy | Layer 3 (encrypted), Layer 9 (vault) | Workspace isolation, encryption at rest | 1 |
-| IX: Transparency | SAGA Section 13.6 (automated decisions) | Status access, decision explainability | 2 |
+| IX: Transparency | SAGA Section 15.9 (Automated Processing Transparency) | Status access, decision explainability | 2 |
 | X: Fair Representation | Layer 2 (Persona), Layer 5 (Skills) | Unmodified passthrough of profile and skills | 2 |
 
 ---
@@ -650,7 +658,7 @@ A Tier 3 DERP manifest from a hypothetical FlowState deployment:
     "transferProtocol": true,
     "cloneProtocol": true,
     "onChainEvents": true,
-    "mpcServers": true
+    "mcpServers": true
   },
   "safeWorking": {
     "minDrainWindowSecs": 60,
@@ -691,7 +699,7 @@ A minimal Tier 1 DERP manifest:
     "transferProtocol": false,
     "cloneProtocol": false,
     "onChainEvents": false,
-    "mpcServers": false
+    "mcpServers": false
   },
   "safeWorking": {
     "minDrainWindowSecs": 30,

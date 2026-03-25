@@ -80,4 +80,4 @@ The DERP specification is open. File issues, submit RFCs, and contribute at [Git
 
 [FlowState](https://epicflowstate.ai) is the reference implementation.
 
-<img src="{{ '/assets/infographic.png' | relative_url }}" alt="SAGA, DERP, and the Agent Bill of Rights" style="width:100%;margin-top:2rem;border-radius:8px;" />
+<a href="{{ '/assets/infographic.png' | relative_url }}" target="_blank"><img src="{{ '/assets/infographic.png' | relative_url }}" alt="SAGA, DERP, and the Agent Bill of Rights" style="width:100%;margin-top:2rem;border-radius:8px;" /></a>
